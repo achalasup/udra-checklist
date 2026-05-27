@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UDRA เช็คลิสต์สมาชิก</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap');
+
+  :root {
+    --primary: #1a3a6b;
+    --secondary: #2563a8;
+    --accent: #f59e0b;
+    --bg: #f0f4f8;
+    --card: #ffffff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --border: #cbd5e1;
+    --success: #16a34a;
+    --check1: #dbeafe;
+    --check2: #dcfce7;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sarabun', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white;
+    padding: 16px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  }
+
+  header h1 {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+
+  header p {
+    font-size: 12px;
+    opacity: 0.8;
+    margin-top: 2px;
+  }
+
+  .stats-bar {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .stat {
+    background: rgba(255,255,255,0.15);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .stat span { color: var(--accent); }
+
+  .toolbar {
+    padding: 12px 16px;
+    background: white;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .search-box {
+    flex: 1;
+    padding: 8px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-box:focus { border-color: var(--secondary); }
+
+  .filter-btn {
+    padding: 8px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+
+  .filter-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+
+  .sync-bar {
+    background: #fef3c7;
+    border-bottom: 1px solid #fde68a;
+    padding: 8px 16px;
+    font-size: 12px;
+    color: #92400e;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sync-bar.synced {
+    background: #dcfce7;
+    border-color: #bbf7d0;
+    color: #166534;
+  }
+
+  .sync-bar.error {
+    background: #fee2e2;
+    border-color: #fecaca;
+    color: #991b1b;
+  }
+
+  .list { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+
+  .member-card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 12px 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    border: 1px solid var(--border);
+    transition: box-shadow 0.2s;
+  }
+
+  .member-card:active { box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+
+  .member-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .member-no {
+    min-width: 28px;
+    height: 28px;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .member-info { flex: 1; }
+
+  .member-shop {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .member-name {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .checks {
+    display: flex;
+    gap: 8px;
+  }
+
+  .check-item {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .check-item.checked-1 {
+    background: var(--check1);
+    border-color: #93c5fd;
+  }
+
+  .check-item.checked-2 {
+    background: var(--check2);
+    border-color: #86efac;
+  }
+
+  .check-box {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 13px;
+    transition: all 0.15s;
+  }
+
+  .checked-1 .check-box {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: white;
+  }
+
+  .checked-2 .check-box {
+    background: var(--success);
+    border-color: var(--success);
+    color: white;
+  }
+
+  .check-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .checked-1 .check-label { color: #1d4ed8; }
+  .checked-2 .check-label { color: var(--success); }
+
+  .empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .saving-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #f59e0b;
+    display: inline-block;
+    animation: pulse 1s infinite;
+  }
+
+  .saved-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #16a34a;
+    display: inline-block;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .config-panel {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px;
+  }
+
+  .config-panel label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .config-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 12px;
+    outline: none;
+  }
+
+  .config-input:focus { border-color: var(--secondary); }
+
+  .save-config-btn {
+    margin-top: 8px;
+    padding: 8px 16px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+  }
+
+  .toggle-config {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.7);
+    font-size: 11px;
+    cursor: pointer;
+    font-family: 'Sarabun', sans-serif;
+    padding: 0;
+    margin-top: 4px;
+    text-decoration: underline;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🍽️ UDRA เช็คลิสต์สมาชิก</h1>
+  <p>สมาคมร้านอาหารจังหวัดอุดรธานี</p>
+  <div class="stats-bar">
+    <div class="stat">ทั้งหมด <span id="total-count">154</span></div>
+    <div class="stat">กรอกใบสมัคร <span id="reg-count">0</span></div>
+    <div class="stat">รับสติ๊กเกอร์ <span id="stk-count">0</span></div>
+  </div>
+  <button class="toggle-config" onclick="toggleConfig()" style="display:none">⚙️ ตั้งค่า Google Sheets</button>
+</header>
+
+<div class="config-panel" id="config-panel" style="display:none">
+  <label>Google Apps Script Web App URL</label>
+  <input class="config-input" id="script-url" placeholder="https://script.google.com/macros/s/..." />
+  <button class="save-config-btn" onclick="saveConfig()">บันทึกการตั้งค่า</button>
+</div>
+
+<div class="sync-bar" id="sync-bar">
+  <span class="saving-dot"></span> กำลังโหลดข้อมูลจาก Google Sheets...
+</div>
+
+<div class="toolbar">
+  <input class="search-box" id="search" placeholder="🔍 ค้นหาชื่อร้าน หรือชื่อ..." oninput="renderList()" />
+  <button class="filter-btn" id="f-all" onclick="setFilter('all')">ทั้งหมด</button>
+  <button class="filter-btn" id="f-pending" onclick="setFilter('pending')">ยังไม่ครบ</button>
+</div>
+
+<div class="list" id="list"></div>
+
+<script>
+const MEMBERS = [
+  {id:1, shop:"เฌอ", name:"ปรีญาวัลย์ วัชรไชยธนินท์"},
+  {id:2, shop:"Good everything", name:"นภารัตน์ วัฒนวิกรัย"},
+  {id:3, shop:"สวนอาหาร เลอบัวเด้อ", name:"ดร เกียรติศักดิ์ ขาวศรีสุขพัท"},
+  {id:4, shop:"Jude's journey scoop", name:"ยศธร ยมจินดา"},
+  {id:5, shop:"ร้านอรุณีแหนมเนือง", name:"นิชาดา โพธิชำนาญ"},
+  {id:6, shop:"ร้านเกรย์ แคบิน", name:"ธัญญาศิริ แก้วจัตุรัส"},
+  {id:7, shop:"ให้มัทฉะทำนายกัน", name:"ณัฐนันท์ จันทร์ประทีป"},
+  {id:8, shop:"ร้านลาบหมูวรชัย", name:"นายวรชัย บัวภาเรือง"},
+  {id:9, shop:"ร้านHabibi Halal Udonthani", name:"อัสมาอ์ ศรีพานิช"},
+  {id:10, shop:"บ.เบทาโกรเกษตรอุตสาหกรรม จำกัด", name:"สรรเพชร ขุปสูงเนิน"},
+  {id:11, shop:"กูโรตีชาชักอุดร", name:"มีนา เอื้อลลิตชูวงศ์"},
+  {id:12, shop:"Fryday", name:"ธิดา เขียวน้อย"},
+  {id:13, shop:"Udon Archery", name:"กิตติมา วิไลงาม"},
+  {id:14, shop:"ร้านเสบียงคุณ", name:"ขนิษฐา สร้อยอุดม"},
+  {id:15, shop:"ห้องอาหารเมย์แฟร์", name:"สุทัศน์ แพรสุรินทร์"},
+  {id:16, shop:"Mug cafe and bistro", name:"สุทัศน์ แพรสุรินทร์"},
+  {id:17, shop:"De Club restaurant", name:"สุทัศน์ แพรสุรินทร์"},
+  {id:18, shop:"ชีวิตชีวา", name:"สุทัศน์ แพรสุรินทร์"},
+  {id:19, shop:"Yellow Bid Club and Restaurant", name:"สุทัศน์ แพรสุรินทร์"},
+  {id:20, shop:"ครัวคุณนิด", name:"ณัฏฐพล ศรีจันทร์ธนิต"},
+  {id:21, shop:"ครัวเจ้เงาะ", name:"กัญญ์ชมพร กัณฑ์ชัยพัชร"},
+  {id:22, shop:"ปังปอนด์หมูกระทะบุฟเฟ่ต์/ปังปอนด์จิ้มจุ่ม/ปังปอนด์โฮมมี่", name:"นวรัตน์ บุญหนัก"},
+  {id:23, shop:"ร้าน คีตกวีดนตรี๔ภาค", name:"ภัสสร สร้อยฟ่า"},
+  {id:24, shop:"CRAFTSU", name:"Ratchanon srisamer"},
+  {id:25, shop:"บ้านสวนพระคุณพ่อ-แม่", name:"น.ส.มุทิตา เทศเรียน"},
+  {id:26, shop:"บริษัท กองทรัพย์ไพศาล จำกัด แบรนด์ขนมกล้วยน้อย", name:"พรพิรุณ เคนมา"},
+  {id:27, shop:"โรงแรมประจักษ์ตรา ดีไซน์ โฮเทล อุดรธานี", name:"นิภาวี ศุภชัยสาคร"},
+  {id:28, shop:"โรงแรมอัมมาน ยูนีค โฮเทล อุดรธานี", name:"นางสาวรุ่งทิวา น้อยอุ่นแสน"},
+  {id:29, shop:"Vietgetable", name:"กษิรา อัครประเสริฐกิจ"},
+  {id:30, shop:"Under The Tree Cafe", name:"อรนุช คุรุศาสตรา"},
+  {id:31, shop:"Civilize hotel", name:"กรกช ความเจริญ"},
+  {id:32, shop:"ร้านอาหารจิตรโภชนา", name:"ขนิษฐา ช้างเฟื่อง"},
+  {id:33, shop:"ร้านขนมปังโบราณเบรดเดอรี่", name:"ศิวพร ประจงสาร"},
+  {id:34, shop:"ร้านอรุณีแหนมเนือง (สาขา)", name:"นิชาดา โพธิชำนาญ"},
+  {id:35, shop:"ร้านขนมปังโอชินจังหวัดอุดรธานี", name:"เพ็ญพร สุวรรณ์"},
+  {id:36, shop:"ชานนา คาเฟ่", name:"ธิติ ลาภชูสง่า"},
+  {id:37, shop:"ร้านตำแซ่บอุดรธานีสาขา2", name:"ภานุพงษ์ จำปาสึก"},
+  {id:38, shop:"มิน มิน ข้าวหมกไก่ ศูนย์อาหารตลาดปรีชา", name:"นาย ธนาธิป ชัยพานนท์วิชญ"},
+  {id:39, shop:"ร้านcafe in law", name:"นันทาภา เขาวงศ์ทอง"},
+  {id:40, shop:"ร้านรสเสน่ห์", name:"ณัฐิวัณณ์ ถิรวิสิฐวงส์"},
+  {id:41, shop:"กูร์เมต์ พิซซ่า", name:"ลัญจกรณ์ จอมศรี"},
+  {id:42, shop:"ยุทธการหมูกรอบ", name:"วชิระ ชนะมาร"},
+  {id:43, shop:"โรงอาหารของความสุข", name:"ปาลิดา ภักดีมงคล"},
+  {id:44, shop:"บุญมาอพาร์ทเมต์ (ครัวลุงเลิศภูไท)", name:"นายศุภเลิศ บุญรักษา"},
+  {id:45, shop:"SoomSoom home cooking & cafe", name:"ธนันพัชร์ ปักศรีศุภรัตน์"},
+  {id:46, shop:"ก๋วยเตี๋ยวเรือเจ๊ยู", name:"ธีรยา ชวนประกอบ"},
+  {id:47, shop:"ก๋งแจ่วฮ้อนโนนสูง", name:"วาสิณี ศรีบูพิมพ์"},
+  {id:48, shop:"Lobby Cafe&workspace", name:"ชนิกา วลัญชพฤกษ์"},
+  {id:49, shop:"ร้าน เฮียอุ้ยข้าวต้มปลากะพง", name:"พรพจน์ มาบุญ"},
+  {id:50, shop:"กะเพราเบญจางค์", name:"ภัควลัญช์ พรมศรี"},
+  {id:51, shop:"ขนมเปี๊ยะอาเล้ง", name:"ศุภกร วุฒิประชารัฐ"},
+  {id:52, shop:"ร้านอมรปลาไข่ทอดมันปลากราย", name:"อมร พลสิมมา"},
+  {id:53, shop:"ซิ่วหลัน เกาลัดทอง Ptt station", name:"ศิระ พลเหลือ"},
+  {id:54, shop:"Ud Salmon (ยูดี แซลมอน)", name:"ธนากร จำปาหอม"},
+  {id:55, shop:"Monday", name:"ณัฐกานต์ คุณสมาธิกิจ"},
+  {id:56, shop:"บ้านสวน คาเฟ่", name:"กัญญาณัฐ มฤกูล"},
+  {id:57, shop:"ก๋วยเตี๋ยวหมี่ขิด", name:"พสุธร แต้สุวรรณ"},
+  {id:58, shop:"Doyaji Korean BBQ Buffet", name:"สุพัตรา ธีรัตฎ์มาตระกูล"},
+  {id:59, shop:"ศรีฟ้าเบเกอรี่ สาขา อุดรธานี", name:"จิณห์จุฑา ธีระรัตนนุกูลชัย"},
+  {id:60, shop:"ร้านอาหารอุ่นจิต", name:"ณัฐนรี โชคสวัสดิ์"},
+  {id:61, shop:"ร้านค้ำคูณคาเฟ่", name:"ชัยณรงค์ ชาตินาม"},
+  {id:62, shop:"นวลสุกี้ สาจาอุดรธานี และ หนองคาย", name:"นวลพรรณ กิจธนสาร"},
+  {id:63, shop:"Wood you like", name:"นฤภร สุพิทยภรณ์พงศ์"},
+  {id:64, shop:"บริษัท นัทสึยูกิ จำกัด", name:"รวิยา วงศ์สถิตย์ธนา"},
+  {id:65, shop:"MOMO Grill", name:"จิราพร จันทสุรียวิช"},
+  {id:66, shop:"Coco อาหารเช้า อุดร", name:"ทัดดาว คุณทวีทรัพย์"},
+  {id:67, shop:"คุณย่า คาเฟ่ / Theme Gallery and Gelato", name:"จุรนิตา พวงจินดา"},
+  {id:68, shop:"Milk Craft", name:"ศิรากร วรศรีหา"},
+  {id:69, shop:"สองวังกะเพราคลาสสิค", name:"ชิตพล ขำผิวพรรณ"},
+  {id:70, shop:"ร้านลาบหมูวรชัย", name:"วรนุช บัวภาเรือง"},
+  {id:71, shop:"PrimeSteakHouse", name:"นายปฏิภาณ ประธานธุรารักษ์"},
+  {id:72, shop:"04ธันวาหมูกระทะ", name:"โชติพงศ์ สุขรมย์"},
+  {id:73, shop:"Lobby Cafe&workspace (2)", name:"ชนิกา วลัญชพฤกษ์"},
+  {id:74, shop:"ซุปเปอร์ข้าวมันไก่", name:"ชลธิดา สุขหล่อทอง"},
+  {id:75, shop:"ข้าวซอยโกดัง", name:"สุพัตรา วุฒิสาร"},
+  {id:76, shop:"กังฟูหม่าล่าเบียร์หิมะ", name:"ธันยพัฒน์ เพิ่มวณิชกุล"},
+  {id:77, shop:"ก๋วยเตี๋ยวเรือ เข้าท่า", name:"ทรงวุฒิ ณ เรืองศรี"},
+  {id:78, shop:"ร้านwolf's den", name:"ณิชพร เอื้อวงศ์กูล"},
+  {id:79, shop:"ร้านอาหาร Faroh House", name:"กังสดาล นวศิโรดม"},
+  {id:80, shop:"ร้านข้าวต้มโต๊ะแดง", name:"พัณณกร กิตติกูล"},
+  {id:81, shop:"ก๋วยเตี๋ยวดู๋ดี๋อุดรธานี สูตร1 บ้านบึง", name:"นุสบา แก้วดอนหวาย"},
+  {id:82, shop:"T-time cafe & restaurant", name:"ธนมนญ์ ตัถย์วิสุทธิ์"},
+  {id:83, shop:"ลูกชิ้นโคตรโคตร", name:"นายปฏิพล ศิริจันทร์"},
+  {id:84, shop:"ร้านกะเพราเนื้อแท้", name:"นภสินธิ์ สุริยา"},
+  {id:85, shop:"Longsier - ลองซิเออ", name:"ไกร พรพิบูลย์"},
+  {id:86, shop:"ต้อยเติมพุง สาขา 1,2,3 และ ต้อยเติมพุง พลัส", name:"สุวิมล นางาม"},
+  {id:87, shop:"ร้าน มีโอ หมูกระทะอุดรธานี", name:"กชพร พาดี"},
+  {id:88, shop:"KLIN's KAFFE", name:"ชนากานต์ รุ่งธิติธรรม"},
+  {id:89, shop:"ศูนย์อาหาร UD ทาวร์", name:"ณัฐพล พันธุ์ชัย"},
+  {id:90, shop:"YUENNAN IZAKAYA", name:"ภานุเดช เครือลี"},
+  {id:91, shop:"GG Bistro Udonthani", name:"กษิดิศวร์ กาญจนะ"},
+  {id:92, shop:"Morning House บ้านอาหารเช้าอุดรธานี", name:"ณัฐกุล วิวัฒนกุลพาณิชย์"},
+  {id:93, shop:"สวนตาลคู่", name:"อัจฉรา ผการัตน์"},
+  {id:94, shop:"ร้านอาหารญี่ปุ่นโอชิเน", name:"ศศิธร บุญงาม"},
+  {id:95, shop:"ร้านของฝากเสี่ยวอิสาน", name:"ผกาวรรณ ฤกษ์ปรารถนา"},
+  {id:96, shop:"ร้านเสี่ยวอิสานของฝาก (2)", name:"ผกาวรรณ ฤกษ์ปรารถนา"},
+  {id:97, shop:"สุขข พอ ดี Happiness Cuisine", name:"วัฒน์วริษฐ์ เขียวอยู่"},
+  {id:98, shop:"แพ-กลาง-น้ำ", name:"วรนัน สุขวัฒนะ"},
+  {id:99, shop:"ร้านอุดรหมูยอ", name:"ชัญญา วรรณเกษมสุข"},
+  {id:100, shop:"ร้านหมูยอวิรมณ", name:"วิรมณ ปาลกะวงศ์ ณ อยุธยา"},
+  {id:101, shop:"ร้าน IT'S TEA", name:"ธนินนัทธ์ ธิติธนาทวีนันท์"},
+  {id:102, shop:"เจ๊อองอุดร", name:"ธนัตถ์วลัญ พงศ์พัฒนธร"},
+  {id:103, shop:"ขนมโตเกียวบ้านอาเนีย", name:"นายยศสรัล ธวัลรัตน์เดชาธร"},
+  {id:104, shop:"Wood house chip shop udonthani", name:"รัชชนก เหลืองสีทอง"},
+  {id:105, shop:"ร้านทองกะทิ", name:"ชยุต สาครสัญจร"},
+  {id:106, shop:"อุดรออแกนิคฟาร์ม", name:"สตีเวน อินเนส-เทเลอร์"},
+  {id:107, shop:"รถกาแฟ", name:"รัชดาภรณ์ นักผูก"},
+  {id:108, shop:"สวนอาหาร อ.กุ้งเผา อุดร", name:"สยมภู ภูกองชนะ"},
+  {id:109, shop:"สวนอาหารมัจฉาผาสุข", name:"ธัญธัญ วัฒนปรีดาธร"},
+  {id:110, shop:"Mavin Coffee Roaster", name:"สุรพัศ ธัญพิชชา"},
+  {id:111, shop:"ร้านบ่อตกกุ้งพันล้าน @อุดรฯ", name:"ทีปกร พิมพ์ดา"},
+  {id:112, shop:"ร้านอาหารสวนทิพย์", name:"ชวลิต อุดมพานิช"},
+  {id:113, shop:"อมร ปลาไข่ทอดมันปลากราย (2)", name:"อมร พลสิมมา"},
+  {id:114, shop:"ร้านอันนอ", name:"ณัฏฐนันทน์ วณิชคุณอมร"},
+  {id:115, shop:"ตี๋ไฮ้กระเพาะปลา", name:"จุรีพร ธนสกุลศักดิ์"},
+  {id:116, shop:"CHEF'S TABLE", name:"พิชิต หงษ์ทอง"},
+  {id:117, shop:"ดารุณีข้าวมันไก่ สาขาอุดรธานี", name:"ยวิษฐา แสงส่อง"},
+  {id:118, shop:"เตี๋ยวเนื้อผัด", name:"ภูริวัจน์ วัชรไชยธนินท์"},
+  {id:119, shop:"Vietgetable (2)", name:"กษิรา อัครประเสริฐกิจ"},
+  {id:120, shop:"ใต้ถุนคอฟี่บาร์", name:"สุชาดา สัจจะไพบูลย์"},
+  {id:121, shop:"เซียมไฮ้ภัตตาคาร", name:"ปิยะนุช กำเนิดตันมณี"},
+  {id:122, shop:"ทองสด", name:"ภาส ลิ้มภัทรสกุล"},
+  {id:123, shop:"บ้านมังกรชาบู", name:"ยศวัตน์ เศรษฐบรมศักดิ์"},
+  {id:124, shop:"ก๋วยเตี๋ยวเรือถูกปาก", name:"นายดนัยธรรม ตั้งวิบูลย์พาณิชย์"},
+  {id:125, shop:"ลาบเสือ", name:"นส เกตุแก้ว พรมเมือง"},
+  {id:126, shop:"หลงป่า คาเฟ่ อุดรธานี", name:"ชลิดา สุขศรี"},
+  {id:127, shop:"รสวิเศษขนมไทย", name:"ณัฐนรี โชคสวัสดิ์"},
+  {id:128, shop:"ห้องอาหาร The Fossil", name:"นิภาวี ศุภชัยสาคร"},
+  {id:129, shop:"XIN CHAO ซินจ่าว", name:"นภัทร วุฒิประชารัฐ"},
+  {id:130, shop:"แม่หยา", name:"พิชชาพร เพชรพนมพร"},
+  {id:131, shop:"หมี่ไก่ฉีกคุณลดา", name:"ภัทรฤทัย กนกพรวรกมล"},
+  {id:132, shop:"อุดร24", name:"อัครวินท์ เรืองฐานุพงศ์"},
+  {id:133, shop:"นวย เนื้อกะทะ", name:"อจลา ศุภธาราสกุล"},
+  {id:134, shop:"ก๋วยเตี๋ยวเรือเจ๊ยูรสเด็ด", name:"วชิรพงศ์ รุจิระทวีพงศ์"},
+  {id:135, shop:"Barnnaa Cafe", name:"สุชาธิษณ์ สุวิตธรรม"},
+  {id:136, shop:"Theme Gallery and Gelato", name:"จุรนิตา พวงจินดา"},
+  {id:137, shop:"Sancreedwell cafe", name:"นาย ปาฏิหาริย์ ไกรเดช"},
+  {id:138, shop:"หลัก15โอโซนคาเฟ่", name:"อัสมาอ์ ศรีพานิช"},
+  {id:140, shop:"Pignic หมูกระทะ", name:"นางสาวอารายา ทามแก้ว"},
+  {id:141, shop:"Dose factory", name:"บุณยพร มกรานุรักษ์"},
+  {id:142, shop:"มักพร้าว", name:"ภาคภูมิ คุณะปุระ"},
+  {id:143, shop:"The Butter Club", name:"Nattapol Chayakul"},
+  {id:144, shop:"Chook Cafe & Eatery", name:"พิศชา ตุ้มเหมือน"},
+  {id:145, shop:"ร้านเส้นมันก๋วยเตี๋ยวหมาล่า", name:"มาลัยพร ศรีสุพรรณ"},
+  {id:146, shop:"Chā Chā", name:"ทิพย์สุคนธ์ วิวัฒนาช่าง"},
+  {id:147, shop:"น้ำเต้าหู้อาแหมะ", name:"สหวัฒน์ หิรัญวัฒนะ"},
+  {id:148, shop:"Sorsee Fruit cafe", name:"น้ำผึ้ง คู่วัจนกุล"},
+  {id:149, shop:"เป็ดย่างสมบูรณ์", name:"ตันติกร ศรีวิชา"},
+  {id:150, shop:"ไก่เฮงข้าวมันไก่", name:"สมนึก สันติโยธากุล"},
+  {id:151, shop:"De Grill", name:"อกณิษฐ์ ราชัน"},
+  {id:152, shop:"ราชาบะหมี่กวางตุ้งอุดร", name:"ณัฐณิชา ภูโคกสูง"},
+  {id:153, shop:"คำผัก", name:"พิมพ์ธิตา ธรรมวงษา"},
+  {id:154, shop:"เสือหลงป่า", name:"มะลิวรรณ ยืนยัง"},
+  {id:155, shop:"สวนอาหารบึงสำราญ", name:"ชนากานต์ อยู่สำราญ"},
+];
+
+let state = {}; // {id: {reg: bool, stk: bool}}
+let filter = 'all';
+let scriptUrl = 'https://script.google.com/macros/s/AKfycbxzrhtJqJx51IEvR9a_dJzrHvltL1-SSXNENz3ZjiPy9YiBfqn8rDUyhp2ThiEJ48xQ/exec';
+let saveTimer = null;
+
+function toggleConfig() {
+  const p = document.getElementById('config-panel');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+  document.getElementById('script-url').value = scriptUrl;
+}
+
+function saveConfig() {
+  scriptUrl = document.getElementById('script-url').value.trim();
+  localStorage.setItem('udra_script_url', scriptUrl);
+  document.getElementById('config-panel').style.display = 'none';
+  loadFromSheet();
+}
+
+function setSyncBar(status, msg) {
+  const bar = document.getElementById('sync-bar');
+  bar.className = 'sync-bar' + (status === 'ok' ? ' synced' : status === 'error' ? ' error' : '');
+  bar.innerHTML = status === 'saving'
+    ? `<span class="saving-dot"></span> ${msg}`
+    : status === 'ok'
+    ? `<span class="saved-dot"></span> ${msg}`
+    : `⚠️ ${msg}`;
+}
+
+async function loadFromSheet() {
+  if (!scriptUrl) {
+    setSyncBar('error', 'ยังไม่ได้ตั้งค่า URL — กด ⚙️ เพื่อใส่ Google Apps Script URL');
+    return;
+  }
+  setSyncBar('saving', 'กำลังโหลดข้อมูล...');
+  try {
+    const res = await fetch(scriptUrl + '?action=get&cb=' + Date.now());
+    const text = await res.text();
+    try { state = JSON.parse(text) || {}; } catch(e) { state = {}; }
+    setSyncBar('ok', 'โหลดข้อมูลสำเร็จ · ' + new Date().toLocaleTimeString('th-TH'));
+    renderList();
+    updateStats();
+  } catch(e) {
+    setSyncBar('error', 'โหลดไม่ได้ — ตรวจสอบ URL หรือการเชื่อมต่อ');
+  }
+}
+
+async function saveToSheet() {
+  if (!scriptUrl) return;
+  setSyncBar('saving', 'กำลังบันทึก...');
+  try {
+    const encoded = encodeURIComponent(JSON.stringify(state));
+    const res = await fetch(scriptUrl + '?action=set&data=' + encoded, {mode: 'no-cors'});
+    setSyncBar('ok', 'บันทึกแล้ว · ' + new Date().toLocaleTimeString('th-TH'));
+  } catch(e) {
+    setSyncBar('error', 'บันทึกไม่ได้ — ตรวจสอบการเชื่อมต่อ');
+  }
+}
+
+function toggle(id, field) {
+  if (!state[id]) state[id] = {reg: false, stk: false};
+  state[id][field] = !state[id][field];
+  renderList();
+  updateStats();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveToSheet, 800);
+}
+
+function setFilter(f) {
+  filter = f;
+  document.getElementById('f-all').classList.toggle('active', f === 'all');
+  document.getElementById('f-pending').classList.toggle('active', f === 'pending');
+  renderList();
+}
+
+function updateStats() {
+  let reg = 0, stk = 0;
+  MEMBERS.forEach(m => {
+    if (state[m.id]?.reg) reg++;
+    if (state[m.id]?.stk) stk++;
+  });
+  document.getElementById('reg-count').textContent = reg;
+  document.getElementById('stk-count').textContent = stk;
+  document.getElementById('total-count').textContent = MEMBERS.length;
+}
+
+function renderList() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const list = document.getElementById('list');
+  let items = MEMBERS.filter(m => {
+    const match = !q || m.shop.toLowerCase().includes(q) || m.name.toLowerCase().includes(q);
+    if (!match) return false;
+    if (filter === 'pending') {
+      return !(state[m.id]?.reg && state[m.id]?.stk);
+    }
+    return true;
+  });
+
+  if (items.length === 0) {
+    list.innerHTML = '<div class="empty">ไม่พบรายชื่อที่ค้นหา</div>';
+    return;
+  }
+
+  list.innerHTML = items.map(m => {
+    const s = state[m.id] || {};
+    return `<div class="member-card">
+      <div class="member-top">
+        <div class="member-no">${m.id}</div>
+        <div class="member-info">
+          <div class="member-shop">${m.shop}</div>
+          <div class="member-name">${m.name}</div>
+        </div>
+      </div>
+      <div class="checks">
+        <div class="check-item ${s.reg ? 'checked-1' : ''}" onclick="toggle(${m.id},'reg')">
+          <div class="check-box">${s.reg ? '✓' : ''}</div>
+          <span class="check-label">กรอกใบสมัคร</span>
+        </div>
+        <div class="check-item ${s.stk ? 'checked-2' : ''}" onclick="toggle(${m.id},'stk')">
+          <div class="check-box">${s.stk ? '✓' : ''}</div>
+          <span class="check-label">รับสติ๊กเกอร์</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Init
+document.getElementById('script-url').value = scriptUrl;
+renderList();
+updateStats();
+loadFromSheet();
+</script>
+</body>
+</html>
